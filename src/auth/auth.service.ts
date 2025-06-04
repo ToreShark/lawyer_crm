@@ -58,6 +58,47 @@ export class AuthService {
     }
   }
 
+  // async login(authData: TelegramAuthData) {
+  //   if (!this.validateTelegramAuth(authData)) {
+  //     throw new UnauthorizedException('Неверные данные авторизации Telegram');
+  //   }
+
+  //   let user = await this.userRepo.findOne({
+  //     where: { telegram_id: authData.id }
+  //   });
+
+  //   if (!user) {
+  //     user = this.userRepo.create({
+  //       telegram_id: authData.id,
+  //       name: `${authData.first_name} ${authData.last_name || ''}`.trim(),
+  //       username: authData.username,
+  //       role: UserRole.ASSISTANT,
+  //     });
+      
+  //     await this.userRepo.save(user);
+  //     this.logger.log(`👤 Создан новый пользователь: ${user.name} (${user.telegram_id})`);
+  //   } else {
+  //     user.name = `${authData.first_name} ${authData.last_name || ''}`.trim();
+  //     user.username = authData.username;
+  //     await this.userRepo.save(user);
+  //     this.logger.log(`🔄 Обновлен пользователь: ${user.name} (${user.telegram_id})`);
+  //   }
+
+  //   const jwt = await this.generateJWT(user);
+
+  //   return {
+  //     user: {
+  //       id: user.id,
+  //       name: user.name,
+  //       username: user.username,
+  //       telegram_id: user.telegram_id,
+  //       role: user.role,
+  //     },
+  //     access_token: jwt.access_token,
+  //     refresh_token: jwt.refresh_token,
+  //   };
+  // }
+
   async login(authData: TelegramAuthData) {
     if (!this.validateTelegramAuth(authData)) {
       throw new UnauthorizedException('Неверные данные авторизации Telegram');
@@ -76,15 +117,32 @@ export class AuthService {
       });
       
       await this.userRepo.save(user);
-      this.logger.log(`👤 Создан новый пользователь: ${user.name} (${user.telegram_id})`);
+      
+      // 🔍 ДИАГНОСТИЧЕСКИЙ ЛОГ
+      this.logger.log(`👤 Новый пользователь создан. ID: ${user.id}, Telegram ID: ${user.telegram_id}, Name: ${user.name}`);
+      
+      if (!user.id) {
+        this.logger.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: ID пользователя не сгенерирован!`);
+        throw new Error('Ошибка создания пользователя - ID не сгенерирован');
+      }
     } else {
       user.name = `${authData.first_name} ${authData.last_name || ''}`.trim();
       user.username = authData.username;
       await this.userRepo.save(user);
-      this.logger.log(`🔄 Обновлен пользователь: ${user.name} (${user.telegram_id})`);
+      
+      // 🔍 ДИАГНОСТИЧЕСКИЙ ЛОГ
+      this.logger.log(`🔄 Пользователь обновлен. ID: ${user.id}, Telegram ID: ${user.telegram_id}, Name: ${user.name}`);
+      
+      if (!user.id) {
+        this.logger.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: ID существующего пользователя потерян!`);
+        throw new Error('Ошибка обновления пользователя - ID потерян');
+      }
     }
 
     const jwt = await this.generateJWT(user);
+
+    // 🔍 ДОПОЛНИТЕЛЬНЫЙ ЛОГ ПЕРЕД ВОЗВРАТОМ
+    this.logger.log(`✅ Возвращаем данные пользователя: ID=${user.id}, role=${user.role}`);
 
     return {
       user: {
@@ -98,7 +156,6 @@ export class AuthService {
       refresh_token: jwt.refresh_token,
     };
   }
-
   async generateJWT(user: User) {
     const payload: JwtPayload = {
       sub: user.id,

@@ -22,7 +22,9 @@ export class CasesService {
   ) {}
 
   async create(dto: CreateCaseDto): Promise<Case> {
-    const responsible = await this.userRepo.findOneBy({ id: dto.responsible_id });
+    const responsible = await this.userRepo.findOneBy({
+      id: dto.responsible_id,
+    });
     if (!responsible) {
       throw new NotFoundException('Ответственный пользователь не найден');
     }
