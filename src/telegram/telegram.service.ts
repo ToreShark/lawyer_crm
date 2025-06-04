@@ -35,15 +35,6 @@ export class TelegramService {
     await this.sendMessage(caseData.responsible.telegram_id, text);
   }
 
-  async sendHearingReminder(caseData: Case, type: 'day_before' | 'hour_before') {
-    const prefix = type === 'day_before' ? '📌 Завтра заседание!' : '⏰ Через час заседание!';
-    const text = `${prefix}\n\n` +
-      `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
-      `🕒 <b>Дата заседания:</b> ${this.formatDate(caseData.hearing_date)}\n` +
-      `👤 <b>Ответственный:</b> ${caseData.responsible.name}`;
-    await this.sendMessage(caseData.responsible.telegram_id, text);
-  }
-
   async sendReturnNotification(caseData: Case) {
     const text = `❗ <b>Дело возвращено!</b>\n\n` +
       `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
@@ -64,4 +55,36 @@ export class TelegramService {
     return date ? new Date(date).toLocaleDateString('ru-RU') : '—';
   }
 
+  async sendHearingReminder(
+    caseData: Case,
+    type: 'day_before' | 'hour_before',
+  ) {
+    const prefix =
+      type === 'day_before'
+        ? '📌 Завтра заседание!'
+        : '⏰ Через час заседание!';
+    const timeText = type === 'day_before' ? 'завтра' : 'через час';
+    
+    const text = `${prefix}\n\n` +
+      `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
+      `🕒 <b>Дата заседания:</b> ${this.formatDateTime(caseData.hearing_date)}\n` +
+      `👤 <b>Ответственный:</b> ${caseData.responsible.name}\n\n` +
+      `⚠️ Подготовьтесь к заседанию ${timeText}!`;
+      
+    await this.sendMessage(caseData.responsible.telegram_id, text);
+  }
+
+  // Добавь этот новый метод для форматирования даты и времени
+  private formatDateTime(date: Date): string {
+    if (!date) return '—';
+    
+    const d = new Date(date);
+    const dateStr = d.toLocaleDateString('ru-RU');
+    const timeStr = d.toLocaleTimeString('ru-RU', { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+    
+    return `${dateStr} в ${timeStr}`;
+  }
 }

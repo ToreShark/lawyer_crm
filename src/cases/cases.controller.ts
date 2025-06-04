@@ -7,13 +7,16 @@ import {
   Query,
   Patch,
   ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { SetHearingDto } from './dto/set-hearing.dto';
 import { CaseStatus } from './entities/case.entity';
 import { UpdateCaseStatusDto } from './dto/update-case.dto';
+import { AuthGuard } from '@nestjs/passport';
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('cases')
 export class CasesController {
   constructor(private readonly casesService: CasesService) {}

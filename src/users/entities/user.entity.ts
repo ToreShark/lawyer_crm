@@ -1,12 +1,16 @@
 // src/users/entities/user.entity.ts
 // import { Case } from 'src/cases/entities/case.entity';
 import { Case } from '../../cases/entities/case.entity';
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Unique, OneToMany } from 'typeorm';
-
-export enum UserRole {
-  LAWYER = 'lawyer',
-  ASSISTANT = 'assistant',
-}
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  Unique,
+  OneToMany,
+} from 'typeorm';
+import { UserRole } from '../enum/user.role';
 
 @Entity('users')
 @Unique(['telegram_id']) // Уникальность
@@ -34,6 +38,9 @@ export class User {
 
   @UpdateDateColumn()
   updated_at: Date;
+
+  @Column({ nullable: true }) // username может быть пустым
+  username?: string;
 
   @OneToMany(() => Case, (caseEntity) => caseEntity.responsible)
   cases: Case[];

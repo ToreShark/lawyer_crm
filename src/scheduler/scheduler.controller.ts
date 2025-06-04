@@ -7,13 +7,31 @@ export class SchedulerController {
 
   @Post('test/check-reminders')
   async testCheckReminder() {
-    await this.schedulerService.sendCheckReminders();
-    return { message: '✅ Проверка напоминаний выполнена вручную' };
+    await this.schedulerService.checkDeadlines();
+    return { message: '✅ Проверка напоминаний о сроках выполнена' };
   }
 
   @Post('test/hearing-reminders')
   async testHearingReminder() {
-    await this.schedulerService.sendHearingRemindersDayBefore();
-    return { message: '✅ Заседания на завтра проверены вручную' };
+    await this.schedulerService.checkHearingReminders();
+    return { message: '✅ Проверка напоминаний о заседаниях выполнена' };
+  }
+
+  @Post('test/hourly-reminders')
+  async testHourlyReminder() {
+    await this.schedulerService.checkHourlyReminders();
+    return { message: '✅ Проверка часовых напоминаний выполнена' };
+  }
+
+  @Post('test/appeal-reminders')
+  async testAppealReminder() {
+    await this.schedulerService.checkAppealDeadlines();
+    return { message: '✅ Проверка напоминаний о жалобах выполнена' };
+  }
+
+  @Post('test/all')
+  async testAllReminders() {
+    const result = await this.schedulerService.testAllReminders();
+    return { message: result };
   }
 }
