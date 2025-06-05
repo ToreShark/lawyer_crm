@@ -8,6 +8,9 @@ import {
   Patch,
   ParseIntPipe,
   UseGuards,
+  Delete,
+  Req,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
@@ -63,5 +66,14 @@ export class CasesController {
     @Body() dto: SetHearingDto,
   ) {
     return this.casesService.setHearing(id, dto);
+  }
+
+  // ✅ DELETE /cases/:id (только для юристов)
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    if (req.user.role !== 'lawyer') {
+      throw new ForbiddenException('Только юристы могут удалять дела');
+    }
+    return this.casesService.remove(id);
   }
 }

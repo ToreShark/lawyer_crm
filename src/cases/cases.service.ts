@@ -97,4 +97,9 @@ export class CasesService {
     found.hearing_date = new Date(dto.hearing_date);
     return this.caseRepo.save(found);
   }
+
+  async remove(id: number): Promise<void> {
+    await this.findOne(id); // Проверяем существование (выбросит ошибку если не найдено)
+    await this.caseRepo.delete(id);
+  }
 }
