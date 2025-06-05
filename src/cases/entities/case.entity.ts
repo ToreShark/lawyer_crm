@@ -19,6 +19,8 @@ export enum CaseStatus {
   ACCEPTED = 'accepted',
   RETURNED = 'returned',
   CLOSED = 'closed',
+  DECISION_MADE = 'decision_made',
+  APPEAL = 'appeal',
 }
 
 @Entity('cases')
