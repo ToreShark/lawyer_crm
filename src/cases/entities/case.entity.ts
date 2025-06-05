@@ -7,6 +7,7 @@ import {
   UpdateDateColumn,
   BeforeInsert,
   BeforeUpdate,
+  JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { addDays, isWeekend } from 'date-fns';
@@ -42,6 +43,7 @@ export class Case {
   status: CaseStatus;
 
   @ManyToOne(() => User, { nullable: false })
+  @JoinColumn({ name: 'responsibleId' })
   responsible: User;
 
   @Column({ type: 'json', nullable: true })
