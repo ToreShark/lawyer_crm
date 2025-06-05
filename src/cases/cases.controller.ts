@@ -49,6 +49,7 @@ export class CasesController {
   updateStatus(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateCaseStatusDto,
+    @Req() req,
   ) {
     return this.casesService.updateStatus(id, dto.status);
   }

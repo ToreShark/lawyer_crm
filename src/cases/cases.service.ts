@@ -68,7 +68,11 @@ export class CasesService {
     return query.getMany();
   }
 
-  async updateStatus(id: number, status: CaseStatus): Promise<Case> {
+  async updateStatus(
+    id: number,
+    status: CaseStatus,
+    changedByUser?: any,
+  ): Promise<Case> {
     const caseEntity = await this.caseRepo.findOne({
       where: { id },
       relations: ['responsible'],
@@ -78,15 +82,29 @@ export class CasesService {
       throw new NotFoundException('Дело не найдено');
     }
 
+    // Сохраняем старый статус для уведомления
+    const oldStatus = caseEntity.status;
+    const changedBy = changedByUser?.name || 'Неизвестный пользователь';
+
     caseEntity.status = status;
     caseEntity.updated_at = new Date();
 
     const updated = await this.caseRepo.save(caseEntity);
 
-    // 🔔 Отправка уведомления при возврате
+    // 🔔 Отправка уведомления при возврате (старая логика)
     if (status === CaseStatus.RETURNED) {
       console.log('🔔 Отправляем уведомление о возврате...');
       await this.telegramService.sendReturnNotification(updated);
+    }
+
+    // 🔔 НОВОЕ: Отправка уведомления всей команде о любом изменении статуса
+    if (oldStatus !== status) {
+      await this.telegramService.sendStatusChangeToTeam(
+        updated, 
+        oldStatus, 
+        status, 
+        changedBy
+      );
     }
 
     return updated;
@@ -107,4 +125,18 @@ export class CasesService {
     await this.findOne(id); // Проверяем существование (выбросит ошибку если не найдено)
     await this.caseRepo.delete(id);
   }
+
+  async findOne(id: number): Promise<Case> {
+    const found = await this.caseRepo.findOne({
+      where: { id },
+      relations: ['responsible'],
+    });
+
+    if (!found) {
+      throw new NotFoundException(`Дело с id ${id} не найдено`);
+    }
+
+    return found;
+  }
+
 }

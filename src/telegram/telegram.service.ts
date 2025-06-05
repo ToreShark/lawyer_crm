@@ -1,13 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import * as TelegramBot from 'node-telegram-bot-api';
 import { Case } from 'src/cases/entities/case.entity';
+import { User } from 'src/users/entities/user.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class TelegramService {
   private bot: TelegramBot;
 
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    @InjectRepository(User) // ← ДОБАВЬ ЭТУ СТРОКУ
+    private readonly userRepo: Repository<User>,
+  ) {
     const token = this.configService.get<string>('TELEGRAM_BOT_TOKEN');
     if (!token) {
       throw new Error('TELEGRAM_BOT_TOKEN not set');
@@ -86,5 +93,47 @@ export class TelegramService {
     });
     
     return `${dateStr} в ${timeStr}`;
+  }
+
+  // 🔔 Отправка уведомления всей команде при изменении статуса
+  async sendStatusChangeToTeam(caseData: Case, oldStatus: string, newStatus: string, changedBy: string) {
+    try {
+      // Получаем всех активных пользователей команды
+      const activeUsers = await this.userRepo.find({
+        where: { is_active: true }
+      });
+
+      const statusText = this.getStatusText(newStatus);
+      const oldStatusText = this.getStatusText(oldStatus);
+
+      const message = `🔄 <b>Изменен статус дела</b>\n\n` +
+        `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
+        `📊 <b>Статус:</b> ${oldStatusText} → ${statusText}\n` +
+        `👤 <b>Изменил:</b> ${changedBy}\n` +
+        `⏰ <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`;
+
+      // Отправляем уведомление всем активным пользователям
+      for (const user of activeUsers) {
+        await this.sendMessage(user.telegram_id, message);
+      }
+
+      console.log(`✅ Уведомление о смене статуса отправлено ${activeUsers.length} пользователям`);
+    } catch (error) {
+      console.error('❌ Ошибка отправки уведомлений команде:', error.message);
+    }
+  }
+
+  // 🎨 Вспомогательный метод для получения текста статуса
+  private getStatusText(status: string): string {
+    const statusMap = {
+      submitted: 'Подан',
+      pending_check: 'Проверка',
+      accepted: 'Принят',
+      returned: 'Возвращен',
+      closed: 'Закрыт',
+      decision_made: 'Принято решение',
+      appeal: 'Апелляция',
+    };
+    return statusMap[status] || status;
   }
 }

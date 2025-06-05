@@ -27,6 +27,7 @@ import { TeamFiltersModule } from './team-filters/team-filters.module';
         database: config.get('DB_NAME'),
         autoLoadEntities: true,
         synchronize: true, // не забудь отключить в продакшене
+        entities: ['dist/**/*.entity{.ts,.js}'],
       }),
       inject: [ConfigService],
     }), 
