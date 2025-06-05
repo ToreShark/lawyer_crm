@@ -31,10 +31,15 @@ export class CasesController {
   @Get()
   findAll(
     @Query('status') status?: CaseStatus,
-    @Query('responsibleId', ParseIntPipe) responsibleId?: number,
+    @Query('responsibleId') responsibleIdStr?: string, // ← ИЗМЕНЕНО: убрал ParseIntPipe
   ) {
+    // 🔧 Парсим responsibleId вручную, если он есть
+    const responsibleId = responsibleIdStr
+      ? parseInt(responsibleIdStr, 10)
+      : undefined;
     return this.casesService.findAll(status, responsibleId);
   }
+
 
   // ✅ GET /cases/:id
   @Get(':id')
