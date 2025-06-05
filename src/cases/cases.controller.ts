@@ -4,7 +4,7 @@ import {
   Post,
   Body,
   Param,
-  Query,
+  // Query,
   Patch,
   ParseIntPipe,
   UseGuards,
@@ -15,7 +15,7 @@ import {
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { SetHearingDto } from './dto/set-hearing.dto';
-import { CaseStatus } from './entities/case.entity';
+// import { CaseStatus } from './entities/case.entity';
 import { UpdateCaseStatusDto } from './dto/update-case.dto';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -31,16 +31,10 @@ export class CasesController {
   }
 
   // ✅ GET /cases?status=submitted&responsibleId=1
+  // ✅ GET /cases (теперь без параметров - фильтры берутся из БД)
   @Get()
-  findAll(
-    @Query('status') status?: CaseStatus,
-    @Query('responsibleId') responsibleIdStr?: string, // ← ИЗМЕНЕНО: убрал ParseIntPipe
-  ) {
-    // 🔧 Парсим responsibleId вручную, если он есть
-    const responsibleId = responsibleIdStr
-      ? parseInt(responsibleIdStr, 10)
-      : undefined;
-    return this.casesService.findAll(status, responsibleId);
+  findAll() {
+    return this.casesService.findAll(); // Убираем параметры status и responsibleId
   }
 
 

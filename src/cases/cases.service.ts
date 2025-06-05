@@ -9,6 +9,7 @@ import { User } from '../users/entities/user.entity';
 import { UpdateCaseStatusDto } from './dto/update-case.dto';
 import { TelegramService } from '../telegram/telegram.service';
 import { addBusinessDays } from '../utils/addBusinessDays';
+import { TeamFiltersService } from 'src/team-filters/team-filters.service';
 
 @Injectable()
 export class CasesService {
@@ -19,6 +20,7 @@ export class CasesService {
     @InjectRepository(User)
     private userRepo: Repository<User>,
     private readonly telegramService: TelegramService,
+    private readonly teamFiltersService: TeamFiltersService,
   ) {}
 
   async create(dto: CreateCaseDto): Promise<Case> {
@@ -42,25 +44,28 @@ export class CasesService {
     return this.caseRepo.save(caseEntity);
   }
 
-  async findAll(status?: CaseStatus, responsibleId?: number): Promise<Case[]> {
-    const query = this.caseRepo.createQueryBuilder('case')
+  async findAll(): Promise<Case[]> {
+    // Получаем текущие глобальные фильтры команды
+    const teamFilters = await this.teamFiltersService.getCurrentFilters();
+    
+    const query = this.caseRepo
+      .createQueryBuilder('case')
       .leftJoinAndSelect('case.responsible', 'user');
 
-    if (status) query.andWhere('case.status = :status', { status });
-    if (responsibleId) query.andWhere('user.id = :responsibleId', { responsibleId });
+    // Применяем фильтры из БД
+    if (teamFilters.status_filter) {
+      query.andWhere('case.status = :status', {
+        status: teamFilters.status_filter,
+      });
+    }
+    
+    if (teamFilters.responsible_id) {
+      query.andWhere('user.id = :responsibleId', {
+        responsibleId: teamFilters.responsible_id,
+      });
+    }
 
     return query.getMany();
-  }
-
-  async findOne(id: number): Promise<Case> {
-    const found = await this.caseRepo.findOne({
-      where: { id },
-      relations: ['responsible'],
-    });
-    if (!found) {
-      throw new NotFoundException(`Дело с ID ${id} не найдено`);
-    }
-    return found;
   }
 
   async updateStatus(id: number, status: CaseStatus): Promise<Case> {

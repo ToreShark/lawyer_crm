@@ -11,6 +11,7 @@ import { SchedulerModule } from './scheduler/scheduler.module';
 import { TelegramModule } from './telegram/telegram.module';
 import { ScheduleModule } from '@nestjs/schedule';
 import { HealthController } from './health.controller';
+import { TeamFiltersModule } from './team-filters/team-filters.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { HealthController } from './health.controller';
     SchedulerModule, 
     TelegramModule, 
     ScheduleModule.forRoot(), // Планировщик
+    TeamFiltersModule,
   ],
   controllers: [AppController, HealthController],
   providers: [AppService],
