@@ -117,7 +117,8 @@ export class CasesService {
       throw new Error('Нельзя назначить дату заседания для непринятого дела');
     }
 
-    found.hearing_date = new Date(dto.hearing_date);
+    // found.hearing_date = new Date(dto.hearing_date);
+    found.hearing_date = new Date(dto.hearing_date + '+06:00');
     return this.caseRepo.save(found);
   }
 
