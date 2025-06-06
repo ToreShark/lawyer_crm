@@ -118,7 +118,7 @@ export class CasesService {
     }
 
     // found.hearing_date = new Date(dto.hearing_date);
-    found.hearing_date = new Date(dto.hearing_date + '+06:00');
+    found.hearing_date = new Date(dto.hearing_date + '+05:00');
     return this.caseRepo.save(found);
   }
 
