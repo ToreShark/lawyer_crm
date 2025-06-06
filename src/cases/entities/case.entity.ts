@@ -57,7 +57,7 @@ export class Case {
   @Column({ type: 'date' })
   check_deadline: Date;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ type: 'timestamptz', nullable: true })
   hearing_date: Date;
 
   @Column({ type: 'date', nullable: true })
