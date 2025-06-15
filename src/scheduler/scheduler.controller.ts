@@ -32,6 +32,12 @@ export class SchedulerController {
     return { message: '✅ Проверка напоминаний о жалобах выполнена' };
   }
 
+  @Post('test/case-end-reminders')
+  async testCaseEndReminder() {
+    await this.schedulerService.checkCaseEndReminders();
+    return { message: '✅ Проверка напоминаний об окончании дел выполнена' };
+  }
+
   @Post('test/all')
   async testAllReminders() {
     const result = await this.schedulerService.testAllReminders();

@@ -70,6 +70,12 @@ export class Case {
   @Column({ type: 'date', nullable: true })
   decision_deadline: Date;
 
+  @Column({ type: 'date', nullable: true })
+  case_end_date: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  accepted_date: Date;
+
   @CreateDateColumn()
   created_at: Date;
 
@@ -88,6 +94,12 @@ export class Case {
     if (this.decision_date) {
       this.appeal_deadline = addDays(this.decision_date, 10);
       this.decision_deadline = addDays(this.decision_date, 30);
+    }
+    
+    // Если дело принято и дата принятия еще не установлена
+    if (this.status === CaseStatus.ACCEPTED && !this.accepted_date) {
+      this.accepted_date = new Date();
+      this.case_end_date = addBusinessDays(new Date(), 23);
     }
   }
 }

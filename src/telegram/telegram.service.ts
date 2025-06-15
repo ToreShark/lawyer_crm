@@ -5,6 +5,7 @@ import * as TelegramBot from 'node-telegram-bot-api';
 import { Case } from 'src/cases/entities/case.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+import { TimezoneUtils } from '../utils/timezone.utils';
 
 @Injectable()
 export class TelegramService {
@@ -62,8 +63,20 @@ export class TelegramService {
     await this.sendMessage(caseData.responsible.telegram_id, text);
   }
 
+  async sendCaseEndReminder(caseData: Case, daysLeft: number) {
+    const text =
+      `⏰ <b>Напоминание об окончании дела</b>\n\n` +
+      `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
+      `📅 <b>Дата принятия:</b> ${this.formatDate(caseData.accepted_date)}\n` +
+      `🔚 <b>Дата окончания:</b> ${this.formatDate(caseData.case_end_date)}\n` +
+      `⚠️ <b>Осталось дней до окончания:</b> ${daysLeft}\n` +
+      `👤 <b>Ответственный:</b> ${caseData.responsible.name}\n\n` +
+      `📋 <b>23 рабочих дня с момента принятия дела</b>`;
+    await this.sendMessage(caseData.responsible.telegram_id, text);
+  }
+
   private formatDate(date: Date): string {
-    return date ? new Date(date).toLocaleDateString('ru-RU') : '—';
+    return TimezoneUtils.formatDateForAlmaty(date);
   }
 
   async sendHearingReminder(
@@ -88,16 +101,7 @@ export class TelegramService {
 
   // Добавь этот новый метод для форматирования даты и времени
   private formatDateTime(date: Date): string {
-    if (!date) return '—';
-
-    const d = new Date(date);
-    const dateStr = d.toLocaleDateString('ru-RU');
-    const timeStr = d.toLocaleTimeString('ru-RU', {
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-
-    return `${dateStr} в ${timeStr}`;
+    return TimezoneUtils.formatDateTimeForAlmaty(date);
   }
 
   // 🔔 Отправка уведомления всей команде при изменении статуса
@@ -121,7 +125,7 @@ export class TelegramService {
         `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
         `📊 <b>Статус:</b> ${oldStatusText} → ${statusText}\n` +
         `👤 <b>Изменил:</b> ${changedBy}\n` +
-        `⏰ <b>Время:</b> ${new Date().toLocaleString('ru-RU')}`;
+        `⏰ <b>Время:</b> ${TimezoneUtils.getCurrentDateTimeForAlmaty()}`;
 
       // Отправляем уведомление всем активным пользователям
       for (const user of activeUsers) {

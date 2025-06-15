@@ -28,6 +28,10 @@ import { TeamFiltersModule } from './team-filters/team-filters.module';
         autoLoadEntities: true,
         synchronize: true, // не забудь отключить в продакшене
         entities: ['dist/**/*.entity{.ts,.js}'],
+        timezone: 'Asia/Almaty', // Временная зона Астаны (UTC+6)
+        extra: {
+          timezone: 'Asia/Almaty',
+        },
       }),
       inject: [ConfigService],
     }),

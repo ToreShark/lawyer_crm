@@ -210,6 +210,68 @@ export class SchedulerService {
     this.logger.log(`📨 Всего отправлено напоминаний о жалобах: ${sentCount}`);
   }
 
+  // 🔚 Каждые 10 дней — проверка окончания дел
+  @Cron('0 11 */10 * *', {
+    timeZone: 'Asia/Almaty',
+  })
+  async checkCaseEndReminders() {
+    this.logger.log('🔚 Проверка приближающихся окончаний дел (каждые 10 дней)');
+
+    const today = new Date();
+    const in10Days = new Date();
+    in10Days.setDate(today.getDate() + 10);
+    
+    const in20Days = new Date();
+    in20Days.setDate(today.getDate() + 20);
+
+    // Ищем принятые дела, которые заканчиваются в ближайшие 10-20 дней
+    const cases = await this.caseRepo.find({
+      where: {
+        status: CaseStatus.ACCEPTED,
+        case_end_date: Between(today, in20Days),
+      },
+      relations: ['responsible'],
+    });
+
+    this.logger.log(
+      `📋 Найдено дел с приближающимся окончанием: ${cases.length}`,
+    );
+
+    let sentCount = 0;
+    for (const caseItem of cases) {
+      if (caseItem.case_end_date) {
+        // Рассчитываем количество дней до окончания
+        const diffTime = caseItem.case_end_date.getTime() - today.getTime();
+        const daysLeft = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        // Отправляем уведомление только если осталось 10, 5 или 1 день
+        const shouldNotify = daysLeft === 10 || daysLeft === 5 || daysLeft === 1 || daysLeft === 0;
+        
+        if (shouldNotify) {
+          const notificationKey = `case_end_${daysLeft}_days`;
+          
+          if (!this.wasNotificationSent(caseItem, notificationKey)) {
+            try {
+              await this.telegramService.sendCaseEndReminder(caseItem, daysLeft);
+              await this.markNotificationSent(caseItem, notificationKey);
+              sentCount++;
+              this.logger.log(
+                `✅ Отправлено напоминание об окончании для дела: ${caseItem.number} (осталось ${daysLeft} дней)`,
+              );
+            } catch (error) {
+              this.logger.error(
+                `❌ Ошибка отправки напоминания об окончании для дела ${caseItem.number}:`,
+                error.message,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    this.logger.log(`📨 Всего отправлено напоминаний об окончании дел: ${sentCount}`);
+  }
+
   // 🔍 Проверка, отправлялось ли уведомление
   private wasNotificationSent(
     caseItem: Case,
@@ -244,6 +306,7 @@ export class SchedulerService {
       await this.checkHearingReminders();
       await this.checkHourlyReminders();
       await this.checkAppealDeadlines();
+      await this.checkCaseEndReminders();
 
       return '✅ Все проверки выполнены успешно';
     } catch (error) {

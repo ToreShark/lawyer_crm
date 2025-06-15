@@ -3,6 +3,9 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
+  // Установка временной зоны для всего приложения
+  process.env.TZ = process.env.TIMEZONE || 'Asia/Almaty';
+  
   const app = await NestFactory.create(AppModule);
 
   // 🌐 CORS для продакшена
