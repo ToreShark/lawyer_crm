@@ -13,7 +13,7 @@ export class TeamFiltersService {
   // Получить текущие фильтры команды (всегда будет одна запись)
   async getCurrentFilters(): Promise<TeamFilter> {
     let filters = await this.teamFilterRepo.findOne({ where: {} });
-    
+
     // Если фильтров нет - создаем дефолтные
     if (!filters) {
       filters = this.teamFilterRepo.create({
@@ -22,17 +22,17 @@ export class TeamFiltersService {
       });
       await this.teamFilterRepo.save(filters);
     }
-    
+
     return filters;
   }
 
   // Обновить фильтры команды
   async updateFilters(filterData: Partial<TeamFilter>): Promise<TeamFilter> {
     const currentFilters = await this.getCurrentFilters();
-    
+
     // Обновляем только переданные поля
     Object.assign(currentFilters, filterData);
-    
+
     return this.teamFilterRepo.save(currentFilters);
   }
 }

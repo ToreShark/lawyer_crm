@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, MoreThanOrEqual, Between } from 'typeorm';
+import { Repository, LessThanOrEqual, Between } from 'typeorm';
 import { Case, CaseStatus } from '../cases/entities/case.entity';
 import { TelegramService } from '../telegram/telegram.service';
 
@@ -20,7 +20,9 @@ export class SchedulerService {
     timeZone: 'Asia/Almaty', // Временная зона Астаны
   })
   async checkDeadlines() {
-    this.logger.log('⏰ Начинаем проверку сроков подачи (рабочие дни)');
+    this.logger.log(
+      '⏰ Начинаем проверку сроков вынесения определения о возбуждении дела (10 рабочих дней)',
+    );
 
     const today = new Date();
     const cases = await this.caseRepo.find({
@@ -32,7 +34,7 @@ export class SchedulerService {
     });
 
     this.logger.log(
-      `📋 Найдено дел с истекшим сроком проверки: ${cases.length}`,
+      `📋 Найдено дел с истекшим сроком вынесения определения: ${cases.length}`,
     );
 
     let sentCount = 0;
@@ -44,7 +46,7 @@ export class SchedulerService {
           await this.markNotificationSent(caseItem, 'check_reminder');
           sentCount++;
           this.logger.log(
-            `✅ Отправлено напоминание о проверке для дела: ${caseItem.number}`,
+            `✅ Отправлено напоминание о вынесении определения для дела: ${caseItem.number}`,
           );
         } catch (error) {
           this.logger.error(
@@ -55,7 +57,9 @@ export class SchedulerService {
       }
     }
 
-    this.logger.log(`📨 Всего отправлено напоминаний о проверке: ${sentCount}`);
+    this.logger.log(
+      `📨 Всего отправлено напоминаний о вынесении определения: ${sentCount}`,
+    );
   }
 
   // 📆 Каждый день в 18:00 — вечерние напоминания за день до заседания
@@ -67,7 +71,7 @@ export class SchedulerService {
 
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
-    
+
     // Начало и конец завтрашнего дня для точного поиска
     const tomorrowStart = new Date(tomorrow);
     tomorrowStart.setHours(0, 0, 0, 0);
@@ -120,7 +124,7 @@ export class SchedulerService {
 
     const now = new Date();
     const oneHourLater = new Date(now.getTime() + 60 * 60 * 1000);
-    
+
     // Диапазон: от 1 часа до 1 часа 5 минут (чтобы не пропустить)
     const rangeStart = oneHourLater;
     const rangeEnd = new Date(oneHourLater.getTime() + 5 * 60 * 1000);
@@ -212,7 +216,7 @@ export class SchedulerService {
     notificationType: string,
   ): boolean {
     if (!caseItem.notifications_sent) return false;
-    
+
     const notifications = caseItem.notifications_sent;
     return notifications[notificationType] === true;
   }
@@ -234,13 +238,13 @@ export class SchedulerService {
   // 🧪 Метод для тестирования (вызывается вручную через контроллер)
   async testAllReminders(): Promise<string> {
     this.logger.log('🧪 Запуск тестирования всех напоминаний');
-    
+
     try {
       await this.checkDeadlines();
       await this.checkHearingReminders();
       await this.checkHourlyReminders();
       await this.checkAppealDeadlines();
-      
+
       return '✅ Все проверки выполнены успешно';
     } catch (error) {
       this.logger.error('❌ Ошибка при тестировании:', error.message);

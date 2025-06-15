@@ -8,7 +8,10 @@ export class SchedulerController {
   @Post('test/check-reminders')
   async testCheckReminder() {
     await this.schedulerService.checkDeadlines();
-    return { message: '✅ Проверка напоминаний о сроках выполнена' };
+    return {
+      message:
+        '✅ Проверка напоминаний о вынесении определения о возбуждении дела выполнена',
+    };
   }
 
   @Post('test/hearing-reminders')

@@ -23,13 +23,13 @@ export class TeamFilter {
   // Фильтры по датам
   @Column({ type: 'date', nullable: true })
   filing_date_from: Date;
-  
+
   @Column({ type: 'date', nullable: true })
   filing_date_to: Date;
 
   @Column({ type: 'date', nullable: true })
   hearing_date_from: Date;
-  
+
   @Column({ type: 'date', nullable: true })
   hearing_date_to: Date;
 

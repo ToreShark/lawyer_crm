@@ -35,15 +35,18 @@ export class TelegramService {
   }
 
   async sendCheckReminder(caseData: Case) {
-    const text = `🕵️‍♂️ <b>Напоминание о проверке дела</b>\n\n` +
+    const text =
+      `⚖️ <b>Поступление заявления в суд → вынесение определения о возбуждении дела</b>\n\n` +
       `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
-      `📅 <b>Срок проверки:</b> ${this.formatDate(caseData.check_deadline)}\n` +
+      `📅 <b>Срок вынесения определения:</b> ${this.formatDate(caseData.check_deadline)}\n` +
+      `⏰ <b>Не позднее 10 рабочих дней со дня поступления заявления</b>\n` +
       `👤 <b>Ответственный:</b> ${caseData.responsible.name}`;
     await this.sendMessage(caseData.responsible.telegram_id, text);
   }
 
   async sendReturnNotification(caseData: Case) {
-    const text = `❗ <b>Дело возвращено!</b>\n\n` +
+    const text =
+      `❗ <b>Дело возвращено!</b>\n\n` +
       `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
       `📅 <b>Дата подачи:</b> ${this.formatDate(caseData.filing_date)}\n` +
       `⚠️ Обратите внимание на причины возврата.`;
@@ -51,7 +54,8 @@ export class TelegramService {
   }
 
   async sendAppealReminder(caseData: Case) {
-    const text = `📝 <b>Напоминание о частной жалобе</b>\n\n` +
+    const text =
+      `📝 <b>Напоминание о частной жалобе</b>\n\n` +
       `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
       `📅 <b>Срок подачи жалобы:</b> ${this.formatDate(caseData.appeal_deadline)}\n` +
       `👤 <b>Ответственный:</b> ${caseData.responsible.name}`;
@@ -71,42 +75,49 @@ export class TelegramService {
         ? '📌 Завтра заседание!'
         : '⏰ Через час заседание!';
     const timeText = type === 'day_before' ? 'завтра' : 'через час';
-    
-    const text = `${prefix}\n\n` +
+
+    const text =
+      `${prefix}\n\n` +
       `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
       `🕒 <b>Дата заседания:</b> ${this.formatDateTime(caseData.hearing_date)}\n` +
       `👤 <b>Ответственный:</b> ${caseData.responsible.name}\n\n` +
       `⚠️ Подготовьтесь к заседанию ${timeText}!`;
-      
+
     await this.sendMessage(caseData.responsible.telegram_id, text);
   }
 
   // Добавь этот новый метод для форматирования даты и времени
   private formatDateTime(date: Date): string {
     if (!date) return '—';
-    
+
     const d = new Date(date);
     const dateStr = d.toLocaleDateString('ru-RU');
-    const timeStr = d.toLocaleTimeString('ru-RU', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
+    const timeStr = d.toLocaleTimeString('ru-RU', {
+      hour: '2-digit',
+      minute: '2-digit',
     });
-    
+
     return `${dateStr} в ${timeStr}`;
   }
 
   // 🔔 Отправка уведомления всей команде при изменении статуса
-  async sendStatusChangeToTeam(caseData: Case, oldStatus: string, newStatus: string, changedBy: string) {
+  async sendStatusChangeToTeam(
+    caseData: Case,
+    oldStatus: string,
+    newStatus: string,
+    changedBy: string,
+  ) {
     try {
       // Получаем всех активных пользователей команды
       const activeUsers = await this.userRepo.find({
-        where: { is_active: true }
+        where: { is_active: true },
       });
 
       const statusText = this.getStatusText(newStatus);
       const oldStatusText = this.getStatusText(oldStatus);
 
-      const message = `🔄 <b>Изменен статус дела</b>\n\n` +
+      const message =
+        `🔄 <b>Изменен статус дела</b>\n\n` +
         `📄 <b>Дело:</b> ${caseData.number} — ${caseData.title}\n` +
         `📊 <b>Статус:</b> ${oldStatusText} → ${statusText}\n` +
         `👤 <b>Изменил:</b> ${changedBy}\n` +
@@ -117,7 +128,9 @@ export class TelegramService {
         await this.sendMessage(user.telegram_id, message);
       }
 
-      console.log(`✅ Уведомление о смене статуса отправлено ${activeUsers.length} пользователям`);
+      console.log(
+        `✅ Уведомление о смене статуса отправлено ${activeUsers.length} пользователям`,
+      );
     } catch (error) {
       console.error('❌ Ошибка отправки уведомлений команде:', error.message);
     }

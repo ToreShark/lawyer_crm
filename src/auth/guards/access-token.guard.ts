@@ -20,7 +20,7 @@ export class AccessTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    // 💡 NOTE: For GraphQL applications, you’d have to use the 
+    // 💡 NOTE: For GraphQL applications, you’d have to use the
     // wrapper GqlExecutionContext here instead.
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);

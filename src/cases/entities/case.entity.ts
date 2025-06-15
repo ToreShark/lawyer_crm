@@ -10,7 +10,8 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
-import { addDays, isWeekend } from 'date-fns';
+import { addDays } from 'date-fns';
+import { addBusinessDays } from '../../utils/addBusinessDays';
 
 // Статусы дела
 export enum CaseStatus {
@@ -78,7 +79,7 @@ export class Case {
   // 🧠 Хук перед созданием записи
   @BeforeInsert()
   calculateCheckDeadline() {
-    this.check_deadline = this.addWorkingDays(this.filing_date, 5);
+    this.check_deadline = addBusinessDays(this.filing_date, 10);
   }
 
   // 🔁 Хук перед обновлением записи
@@ -88,20 +89,5 @@ export class Case {
       this.appeal_deadline = addDays(this.decision_date, 10);
       this.decision_deadline = addDays(this.decision_date, 30);
     }
-  }
-
-  // ⚙️ Утилита: прибавление рабочих дней
-  private addWorkingDays(startDate: Date, workingDays: number): Date {
-    let date = new Date(startDate);
-    let addedDays = 0;
-
-    while (addedDays < workingDays) {
-      date = addDays(date, 1);
-      if (!isWeekend(date)) {
-        addedDays++;
-      }
-    }
-
-    return date;
   }
 }

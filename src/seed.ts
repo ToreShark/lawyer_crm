@@ -16,7 +16,9 @@ async function bootstrap() {
   const user = await userRepo.findOneBy({ telegram_id: '376068212' });
 
   if (!user) {
-    console.error('Пользователь не найден! Запусти users сид или создай вручную.');
+    console.error(
+      'Пользователь не найден! Запусти users сид или создай вручную.',
+    );
     await app.close();
     return;
   }

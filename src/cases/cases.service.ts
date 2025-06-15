@@ -47,7 +47,7 @@ export class CasesService {
   async findAll(): Promise<Case[]> {
     // Получаем текущие глобальные фильтры команды
     const teamFilters = await this.teamFiltersService.getCurrentFilters();
-    
+
     const query = this.caseRepo
       .createQueryBuilder('case')
       .leftJoinAndSelect('case.responsible', 'user');
@@ -58,7 +58,7 @@ export class CasesService {
         status: teamFilters.status_filter,
       });
     }
-    
+
     if (teamFilters.responsible_id) {
       query.andWhere('user.id = :responsibleId', {
         responsibleId: teamFilters.responsible_id,
@@ -100,16 +100,15 @@ export class CasesService {
     // 🔔 НОВОЕ: Отправка уведомления всей команде о любом изменении статуса
     if (oldStatus !== status) {
       await this.telegramService.sendStatusChangeToTeam(
-        updated, 
-        oldStatus, 
-        status, 
-        changedBy
+        updated,
+        oldStatus,
+        status,
+        changedBy,
       );
     }
 
     return updated;
   }
-
 
   async setHearing(id: number, dto: SetHearingDto): Promise<Case> {
     const found = await this.findOne(id);
@@ -139,5 +138,4 @@ export class CasesService {
 
     return found;
   }
-
 }

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
@@ -14,7 +24,7 @@ export class AuthController {
   loginWithTelegram(@Body() authData: TelegramAuthData) {
     return this.authService.login(authData);
   }
-  
+
   @Get('me')
   @UseGuards(AccessTokenGuard)
   async getCurrentUser(@Req() req: Request) {

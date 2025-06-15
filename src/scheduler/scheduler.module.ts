@@ -8,6 +8,6 @@ import { SchedulerController } from './scheduler.controller';
 @Module({
   imports: [TypeOrmModule.forFeature([Case]), TelegramModule],
   controllers: [SchedulerController],
-  providers: [SchedulerService]
+  providers: [SchedulerService],
 })
 export class SchedulerModule {}

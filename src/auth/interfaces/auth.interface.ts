@@ -1,4 +1,4 @@
-import { UserRole } from "src/users/enum/user.role";
+import { UserRole } from 'src/users/enum/user.role';
 
 export interface TelegramAuthData {
   id: string;
@@ -11,7 +11,7 @@ export interface TelegramAuthData {
 }
 
 export interface JwtPayload {
-  sub: number; 
+  sub: number;
   telegram_id: string;
   role: UserRole;
   name: string;

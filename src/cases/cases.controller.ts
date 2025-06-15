@@ -37,7 +37,6 @@ export class CasesController {
     return this.casesService.findAll(); // Убираем параметры status и responsibleId
   }
 
-
   // ✅ GET /cases/:id
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {

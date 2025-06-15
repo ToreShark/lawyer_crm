@@ -11,7 +11,7 @@ export class UsersService {
     @InjectRepository(User)
     private readonly userRepo: Repository<User>, // ← ВОТ ЭТО ДОБАВЛЯЕМ!
   ) {}
-  
+
   create(createUserDto: CreateUserDto) {
     return 'This action adds a new user';
   }
@@ -20,7 +20,7 @@ export class UsersService {
     return this.userRepo.find({
       select: ['id', 'name', 'role', 'telegram_id'], // Только нужные поля
       where: { is_active: true }, // Только активные пользователи
-      order: { name: 'ASC' } // Сортировка по имени
+      order: { name: 'ASC' }, // Сортировка по имени
     });
   }
 

@@ -27,7 +27,9 @@ async function bootstrap() {
 
   // 🔹 Создаём помощницу Азизу как assistant (если не существует)
   const assistantTelegramId = '827743984';
-  let assistant = await userRepo.findOneBy({ telegram_id: assistantTelegramId });
+  let assistant = await userRepo.findOneBy({
+    telegram_id: assistantTelegramId,
+  });
   if (!assistant) {
     assistant = userRepo.create({
       telegram_id: assistantTelegramId,

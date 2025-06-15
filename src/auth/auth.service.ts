@@ -1,4 +1,9 @@
-import { Inject, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Inject,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { User } from 'src/users/entities/user.entity';
@@ -32,7 +37,7 @@ export class AuthService {
 
       const dataCheckString = Object.keys(dataWithoutHash)
         .sort()
-        .map(key => `${key}=${dataWithoutHash[key]}`)
+        .map((key) => `${key}=${dataWithoutHash[key]}`)
         .join('\n');
 
       const secretKey = crypto
@@ -49,8 +54,10 @@ export class AuthService {
       const authDate = new Date(parseInt(authData.auth_date) * 1000);
       const isRecent = Date.now() - authDate.getTime() < 86400000;
 
-      this.logger.log(`🔍 Telegram auth validation: ${isValid && isRecent ? '✅' : '❌'}`);
-      
+      this.logger.log(
+        `🔍 Telegram auth validation: ${isValid && isRecent ? '✅' : '❌'}`,
+      );
+
       return isValid && isRecent;
     } catch (error) {
       this.logger.error('❌ Ошибка при проверке Telegram auth:', error.message);
@@ -74,7 +81,7 @@ export class AuthService {
   //       username: authData.username,
   //       role: UserRole.ASSISTANT,
   //     });
-      
+
   //     await this.userRepo.save(user);
   //     this.logger.log(`👤 Создан новый пользователь: ${user.name} (${user.telegram_id})`);
   //   } else {
@@ -105,7 +112,7 @@ export class AuthService {
     }
 
     let user = await this.userRepo.findOne({
-      where: { telegram_id: authData.id }
+      where: { telegram_id: authData.id },
     });
 
     if (!user) {
@@ -115,26 +122,34 @@ export class AuthService {
         username: authData.username,
         role: UserRole.ASSISTANT,
       });
-      
+
       await this.userRepo.save(user);
-      
+
       // 🔍 ДИАГНОСТИЧЕСКИЙ ЛОГ
-      this.logger.log(`👤 Новый пользователь создан. ID: ${user.id}, Telegram ID: ${user.telegram_id}, Name: ${user.name}`);
-      
+      this.logger.log(
+        `👤 Новый пользователь создан. ID: ${user.id}, Telegram ID: ${user.telegram_id}, Name: ${user.name}`,
+      );
+
       if (!user.id) {
-        this.logger.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: ID пользователя не сгенерирован!`);
+        this.logger.error(
+          `❌ КРИТИЧЕСКАЯ ОШИБКА: ID пользователя не сгенерирован!`,
+        );
         throw new Error('Ошибка создания пользователя - ID не сгенерирован');
       }
     } else {
       user.name = `${authData.first_name} ${authData.last_name || ''}`.trim();
       user.username = authData.username;
       await this.userRepo.save(user);
-      
+
       // 🔍 ДИАГНОСТИЧЕСКИЙ ЛОГ
-      this.logger.log(`🔄 Пользователь обновлен. ID: ${user.id}, Telegram ID: ${user.telegram_id}, Name: ${user.name}`);
-      
+      this.logger.log(
+        `🔄 Пользователь обновлен. ID: ${user.id}, Telegram ID: ${user.telegram_id}, Name: ${user.name}`,
+      );
+
       if (!user.id) {
-        this.logger.error(`❌ КРИТИЧЕСКАЯ ОШИБКА: ID существующего пользователя потерян!`);
+        this.logger.error(
+          `❌ КРИТИЧЕСКАЯ ОШИБКА: ID существующего пользователя потерян!`,
+        );
         throw new Error('Ошибка обновления пользователя - ID потерян');
       }
     }
@@ -142,7 +157,9 @@ export class AuthService {
     const jwt = await this.generateJWT(user);
 
     // 🔍 ДОПОЛНИТЕЛЬНЫЙ ЛОГ ПЕРЕД ВОЗВРАТОМ
-    this.logger.log(`✅ Возвращаем данные пользователя: ID=${user.id}, role=${user.role}`);
+    this.logger.log(
+      `✅ Возвращаем данные пользователя: ID=${user.id}, role=${user.role}`,
+    );
 
     return {
       user: {
