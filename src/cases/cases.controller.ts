@@ -15,6 +15,7 @@ import {
 import { CasesService } from './cases.service';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { SetHearingDto } from './dto/set-hearing.dto';
+import { UpdateAcceptedDateDto } from './dto/update-accepted-date.dto';
 // import { CaseStatus } from './entities/case.entity';
 import { UpdateCaseStatusDto } from './dto/update-case.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -60,6 +61,15 @@ export class CasesController {
     @Body() dto: SetHearingDto,
   ) {
     return this.casesService.setHearing(id, dto);
+  }
+
+  // ✅ PATCH /cases/:id/accepted-date
+  @Patch(':id/accepted-date')
+  updateAcceptedDate(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateAcceptedDateDto,
+  ) {
+    return this.casesService.updateAcceptedDate(id, dto);
   }
 
   // ✅ DELETE /cases/:id (только для юристов)

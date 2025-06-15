@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Case, CaseStatus } from './entities/case.entity';
 import { CreateCaseDto } from './dto/create-case.dto';
 import { SetHearingDto } from './dto/set-hearing.dto';
+import { UpdateAcceptedDateDto } from './dto/update-accepted-date.dto';
 import { User } from '../users/entities/user.entity';
 import { UpdateCaseStatusDto } from './dto/update-case.dto';
 import { TelegramService } from '../telegram/telegram.service';
@@ -118,6 +119,34 @@ export class CasesService {
 
     // found.hearing_date = new Date(dto.hearing_date);
     found.hearing_date = new Date(dto.hearing_date + '+05:00');
+    return this.caseRepo.save(found);
+  }
+
+  async updateAcceptedDate(id: number, dto: UpdateAcceptedDateDto): Promise<Case> {
+    const found = await this.findOne(id);
+    
+    // Проверяем, что дело действительно принято
+    if (found.status !== CaseStatus.ACCEPTED) {
+      throw new Error('Можно изменить дату принятия только для принятых дел');
+    }
+
+    // Обновляем дату принятия
+    found.accepted_date = new Date(dto.accepted_date);
+    
+    // Пересчитываем дату окончания дела (23 рабочих дня)
+    found.case_end_date = addBusinessDays(found.accepted_date, 23);
+    
+    // Сбрасываем уведомления об окончании дела, чтобы они отправились заново
+    if (found.notifications_sent) {
+      const notifications = { ...found.notifications_sent };
+      // Удаляем старые уведомления об окончании дела
+      delete notifications.case_end_10_days;
+      delete notifications.case_end_5_days;
+      delete notifications.case_end_1_days;
+      delete notifications.case_end_0_days;
+      found.notifications_sent = notifications;
+    }
+
     return this.caseRepo.save(found);
   }
 
